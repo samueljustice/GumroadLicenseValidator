@@ -35,7 +35,6 @@ public final class GumroadClient {
         guard let success = response?.success, success,
               let purchase = response?.purchase else { return false }
 
-        // Check that license key matches and purchase has not been refunded
         guard let verifiedKey = purchase.licenseKey, verifiedKey == licenseKey,
               let refunded = purchase.refunded, refunded == false
         else { return false }
@@ -49,15 +48,13 @@ public final class GumroadClient {
     ///   - incrementUsesCount: Whether Gumroad should increment count of times a license has been checked
     /// - Returns: `URLRequest` with needed POST parameters
     func makeRequest(licenseKey: String, incrementUsesCount: Bool = true) -> URLRequest? {
-        guard productPermalink.isEmpty == false, licenseKey.isEmpty == false else { return nil }
+        guard productId.isEmpty == false, licenseKey.isEmpty == false else { return nil }
         guard let baseURL = URL(string: "https://api.gumroad.com/v2/licenses/verify"),
               var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)
         else { return nil }
 
-        // Technique to avoid manually percent-encoding
-        // https://stackoverflow.com/a/58356848
         components.queryItems = [
-            URLQueryItem(name: "product_permalink", value: productPermalink),
+            URLQueryItem(name: "product_id", value: productId),
             URLQueryItem(name: "license_key", value: licenseKey)
         ]
         if incrementUsesCount == false {
@@ -65,7 +62,6 @@ public final class GumroadClient {
         }
         guard let query = components.url?.query else { return nil }
 
-        // Finally, build the request
         var urlRequest = URLRequest(url: baseURL)
         urlRequest.httpMethod = "POST"
         urlRequest.httpBody = Data(query.utf8)
