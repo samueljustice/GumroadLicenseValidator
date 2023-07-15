@@ -9,18 +9,18 @@ import Foundation
 
 /// Simple class to send requests to Gumroad's Verify License API endpoint, which does not require an OAuth application.
 ///
-/// Class initializer is failable to ensure that the class has a product permalink.
+/// Class initializer is failable to ensure that the class has a product id.
 ///
 /// - note: Has a configurable property `disputedPurchaseInvalidatesLicense`
 public final class GumroadClient {
-    let productPermalink: String
+    let productId: String
 
-    /// Initializes only if product permalink string is not empty
+    /// Initializes only if product id string is not empty
     ///
-    /// If your product URL is "https://gumroad.com/l/QMGY" your product permalink would be "QMGY."
-    public init?(productPermalink: String) {
-        guard productPermalink.isEmpty == false else { return nil }
-        self.productPermalink = productPermalink
+    /// Update for Gumroad 2023 - "Important: Our license key verification API requires the product_id parameter instead of product_permalink for all products created on or after Jan 9, 2023."
+    public init?(productId: String) {
+        guard productId.isEmpty == false else { return nil }
+        self.productId = productId
     }
 
     /// Checks validity of Gumroad-issued license key
@@ -46,7 +46,6 @@ public final class GumroadClient {
     /// - Parameters:
     ///   - licenseKey: Non-empty string, preferably sanitized (remember Little Bobby Tables!)
     ///   - incrementUsesCount: Whether Gumroad should increment count of times a license has been checked
-    /// - Returns: `URLRequest` with needed POST parameters
     func makeRequest(licenseKey: String, incrementUsesCount: Bool = true) -> URLRequest? {
         guard productId.isEmpty == false, licenseKey.isEmpty == false else { return nil }
         guard let baseURL = URL(string: "https://api.gumroad.com/v2/licenses/verify"),
